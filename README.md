@@ -3,7 +3,7 @@
 </h1>
 
 <p>
-  This is a full stack web application that utilizes virtual positioning and video calls to simulate a physical office space for remote workers. The issues that this project aims to tackle are:
+  This is a full stack web application that utilizes virtual positioning and video calls to simulate a physical office space for remote workers. The primary issues that this project aims to tackle are:
 </p>
 
 <ul>
