@@ -20,6 +20,7 @@
     "react-redux": "^8.1.2",
     "react-scripts": "5.0.1",
     "redux": "^4.2.1",
+    "serve": "^14.2.3",
     "simple-peer": "^9.11.1",
     "socket.io-client": "^4.7.2",
     "uuidv4": "^6.2.13",
