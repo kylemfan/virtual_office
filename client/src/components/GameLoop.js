@@ -5,8 +5,11 @@ import CanvasContext from './CanvasContext';
 import {MOVE_DIRECTIONS, MAP_DIMENSIONS, TILE_SIZE} from './mapConstants';
 import { MY_CHARACTER_INIT_CONFIG } from './characterConstants';
 import {checkMapCollision} from './utils';
+import {update as updateAllCharactersData} from './slices/allCharactersSlice'
+import { firebaseDatabase } from '../firebase/firebase';
+import { set, ref } from 'firebase/database';
 
-const GameLoop = ({children, allCharactersData}) => {
+const GameLoop = ({children, allCharactersData, updateAllCharactersData}) => {
     const canvasRef = useRef(null);
     const [context, setContext] = useState(null);
     useEffect(() => {
@@ -25,17 +28,31 @@ const GameLoop = ({children, allCharactersData}) => {
         if (MOVE_DIRECTIONS[key]) {
             // ***********************************************
             // TODO: Add your move logic here
-            // 1. read current position
-            // 2. add delta (get from moveDirections to calculate new position)
-            // 3. update position (update function from mycharacter.js)
+            // Steps:
+            // 1. Calculate new position (get from moveDirections to calculate new position)
+            // 2. Update position (using updateAllCharactersData() from mycharacter.js)
 
-            // if w pressed: currentPosition.y += -1;
-            // if a pressed: currentPosition.x += -1;
-            // if s pressed: currentPosition.y += 1;
-            // if d pressed: currentPosition.x += 1;
-            currentPosition.x += MOVE_DIRECTIONS.key[0];
-            currentPosition.y += MOVE_DIRECTIONS.key[1];
+            // Calculate position delta based on keypress:
+            const updatedX = currentPosition.x + MOVE_DIRECTIONS[key][0];
+            const updatedY = currentPosition.y + MOVE_DIRECTIONS[key][1];
+            
+            // Writes character's new position in position value (to firebase)
+            const positionRef = ref(firebaseDatabase, 'users/' + MY_CHARACTER_INIT_CONFIG.id + '/position');
+            set(positionRef, {x: updatedX, y: updatedY});
 
+            // Writes character's new position in position value
+            // updatedAllCharacterData object to be passed into updateAllCharactersData() to update
+            // const updatedAllCharacterData = {
+            //     ...allCharactersData,                    // FIXME: might not need
+            //     [MY_CHARACTER_INIT_CONFIG.id]: {
+            //         ...mycharacterData,
+            //         position: {x: updatedX, y: updatedY}
+            //     }
+            // };
+            
+            // Will update character passed in as arg (updatedAllCharacterData)
+            // FIXME: writes to redux, want to write to firebase instead
+            // updateAllCharactersData(updatedAllCharacterData);
         }
     }, [mycharacterData]);
 
@@ -54,6 +71,7 @@ const GameLoop = ({children, allCharactersData}) => {
     }, [loopRef, tick])
 
     useEffect(() => {
+        // IMPORTANT: when key pressed, call moveMyCharacter (callback)
         document.addEventListener('keypress', moveMyCharacter);
         return () => {
             document.removeEventListener('keypress', moveMyCharacter);
@@ -69,6 +87,8 @@ const GameLoop = ({children, allCharactersData}) => {
                 class="main-canvas"
             />
             {children}
+            {/* v ? v */}
+            <FirebaseListener/>
         </CanvasContext.Provider>
     );
 };
@@ -77,6 +97,7 @@ const mapStateToProps = (state) => {
     return {allCharactersData: state.allCharacters.users};
 };
 
-export default connect(mapStateToProps, {})(GameLoop);
+// MIGHT HAVE TO CHANGE TO SET FUNCTION FROM FIREBASE
+const mapDispatch = {updateAllCharactersData};
 
-// states: 1. name 2. initial value 3. thing is updating
+export default connect(mapStateToProps, mapDispatch)(GameLoop);

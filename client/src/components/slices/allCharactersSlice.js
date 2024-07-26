@@ -1,5 +1,6 @@
 import {createSlice} from '@reduxjs/toolkit';
 
+// Slices: 1. name 2. initial value 3. thing is updating
 const allCharactersSlice = createSlice({
     name: 'allCharacters',
     initialState: {

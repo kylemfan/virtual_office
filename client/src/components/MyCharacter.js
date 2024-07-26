@@ -7,7 +7,8 @@ import {TILE_SIZE} from './mapConstants';
 import {loadCharacter} from './slices/statusSlice';
 import { MY_CHARACTER_INIT_CONFIG } from './characterConstants';
 import {update as updateAllCharactersData} from './slices/allCharactersSlice'
-
+import { firebaseDatabase } from '../firebase/firebase';
+import { set, ref } from 'firebase/database';
 
 function MyCharacter({ myCharactersData, loadCharacter, updateAllCharactersData, webrtcSocket }) {
     const context = useContext(CanvasConext);
@@ -17,10 +18,22 @@ function MyCharacter({ myCharactersData, loadCharacter, updateAllCharactersData,
             socketId: webrtcSocket.id,
         };
 
-        const users = {};
+        const users = {};        
         const myId = MY_CHARACTER_INIT_CONFIG.id;
-        users[myId] = myInitData;
-        updateAllCharactersData(users);
+        users[myId] = myInitData;                   // Adds character's id as a key to users object
+        // Need to replace all updateAllCharactersData by writing to firebase instead of redux (current)
+        // updateAllCharactersData(users); 
+        // ^ TAKES IN:
+        // (KEY) character.id:  {
+        //                       name: string, 
+        //                       id: uuid(),
+        //                       position: {x: number, y: number}
+        //                       characterClass: string
+        //                       socketid: string
+        //                      }                         (VALUE)
+
+        // !!! Write to firebase instead of redux: !!! (KEY)
+        set(ref(firebaseDatabase, 'users/' + MY_CHARACTER_INIT_CONFIG.id), myInitData);
     }, [webrtcSocket]);
 
     useEffect(() => {
@@ -50,6 +63,7 @@ const mapStateToProps = (state) => {
     return {myCharactersData: state.allCharacters.users[MY_CHARACTER_INIT_CONFIG.id]};
 };
 
+// MIGHT HAVE TO CHANGE TO SET FUNCTION FROM FIREBASE
 const mapDispatch = {loadCharacter, updateAllCharactersData};
 
 export default connect(mapStateToProps, mapDispatch)(MyCharacter);
